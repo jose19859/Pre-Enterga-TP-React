@@ -1,0 +1,39 @@
+[
+  {
+    "id": 1,
+    "nombre": "Soporte para Auriculares Gaming",
+    "Descripcion":"soporte de impreso en PLA, resistente y con una terminacion exelentte pra poder poner tus auriculare gamers",
+    "precio": 8500,
+    "stock": 12,
+    "material":"PLA",
+    "categoria":"Gaming",
+    "imagen": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfMYUHQ7rxUJ9j8uIRdHalG4fQjgoehNUsYSmzaZNyyNIhu3vmVgWwVuCd&s=10r"
+  },
+  {
+    "id": 2,
+    "nombre": "Maceta Articulada de Baby Groot",
+    "Descripcion":"soporte de impreso en PLA, resistente y con una terminacion exelentte pra poder poner tus auriculare gamers",
+    "precio": 6000,
+    "material":"PLA",
+    "stock": 20,
+    "imagen": "https://d22fxaf9t8d39k.cloudfront.net/360002ef34d126caadf62d8f130955361088871a221d025ef056d9b6d4ac97b0277968.jpg"
+  },
+  {
+    "id": 3,
+    "nombre": "Organizador de Escritorio Modular",
+    "Descripcion":"soporte de impreso en PLA, resistente y con una terminacion exelentte pra poder poner tus auriculare gamers",
+    "precio": 12400,
+    "material":"PLA",
+    "stock": 8,
+    "imagen": "https://http2.mlstatic.com/D_NQ_NP_2X_665341-MLA112702073889_062026-F.webp"
+  },
+  {
+    "id": 4,
+    "nombre": "Lámpara de Luna Impresa en 3D",
+    "Descripcion":"soporte de impreso en PLA, resistente y con una terminacion exelentte pra poder poner tus auriculare gamers",
+    "precio": 18500,
+    "material":"PLA",
+    "stock": 5,
+    "imagen": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSqlKoGPeJHZzDuGxztixsnfeEFJ4Y9R8eenulQDVceA&s=10"
+  }
+]
