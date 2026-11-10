@@ -1,66 +1,119 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
-import { CartContext } from '../context/CartContext';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase/config'; 
+import { useCart } from '../context/CartContext';
 
-function ItemDetailContainer() {
+const ItemDetailContainer = () => {
   const [producto, setProducto] = useState(null);
-  const [cargando, setCargando] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [cantidadAgregada, setCantidadAgregada] = useState(false);
+  const [cantidad, setCantidad] = useState(1); // 👈 Estado para manejar las unidades elegidas
+  
+  // Capturamos el id que viene en la URL (:id)
   const { id } = useParams();
-  const { agregarAlCarrito } = useContext(CartContext);
+  
+  // Traemos la función correcta desde el contexto de una sola vez
+  const { agregarAlCarrito } = useCart(); 
 
   useEffect(() => {
-    fetch('/data/productos.json')
-      .then((res) => res.json())
-      .then((data) => {
-        const encontrado = data.find((prod) => prod.id === Number(id));
-        setProducto(encontrado);
-        setCargando(false);
+    const docRef = doc(db, "productos", id);
+    
+    getDoc(docRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          setProducto({ id: snapshot.id, ...snapshot.data() });
+        } else {
+          console.error("El producto no existe");
+        }
       })
-      .catch((error) => {
-        console.error("Error al cargar el detalle:", error);
-        setCargando(false);
-      });
+      .catch((error) => console.error("Error al cargar el detalle:", error))
+      .finally(() => setLoading(false));
   }, [id]);
 
-  if (cargando) {
-    return <h3 style={{ textAlign: 'center', padding: '40px' }}>Cargando detalle del producto...</h3>;
+  // Funciones para sumar y restar del contador local
+  const handleSumar = () => {
+    if (producto && cantidad < producto.stock) {
+      setCantidad(cantidad + 1);
+    }
+  };
+
+  const handleRestar = () => {
+    if (cantidad > 1) {
+      setCantidad(cantidad - 1);
+    }
+  };
+
+  const handleAgregarAlCarrito = () => {
+    agregarAlCarrito(producto, cantidad); // 👈 Enviamos la cantidad seleccionada en lugar de un 1 fijo
+    setCantidadAgregada(true);            // Cambiamos el estado visual para mostrar el botón de ir al carrito
+  };
+
+  if (loading) {
+    return <h3 style={{ textAlign: 'center', color: '#fff', marginTop: '50px' }}>Cargando detalle...</h3>;
   }
 
   if (!producto) {
-    return <h3 style={{ textAlign: 'center', padding: '40px' }}>Producto no encontrado.</h3>;
+    return <h3 style={{ textAlign: 'center', color: '#e74c3c', marginTop: '50px' }}>Producto no encontrado.</h3>;
   }
 
   return (
-    <div style={{ maxWidth: '800px', margin: '40px auto', background: '#fff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', display: 'flex', gap: '30px', alignItems: 'flex-start' }}>
-      <img src={producto.imagen} alt={producto.nombre} style={{ width: '300px', height: '300px', objectFit: 'cover', borderRadius: '8px' }} />
-      
-      <div style={{ flex: 1 }}>
-        <h2 style={{ color: '#2c3e50', marginBottom: '10px' }}>{producto.nombre}</h2>
-        
-        
-        <span style={{ background: '#e0f7fa', color: '#00796b', padding: '4px 10px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-          {producto.categoria || 'Impresión 3D'}
-        </span>
+    <div style={{ padding: '20px', color: '#fff', maxWidth: '1000px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', gap: '30px', background: '#1a1a1a', padding: '20px', borderRadius: '8px', border: '1px solid #444', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <img 
+          src={producto.imagen} 
+          alt={producto.nombre} 
+          style={{ width: '350px', height: '300px', objectFit: 'cover', borderRadius: '6px' }} 
+        />
+        <div style={{ flex: '1', minWidth: '250px' }}>
+          <h2>{producto.nombre}</h2>
+          <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#00ffcc', margin: '15px 0' }}>${producto.precio}</p>
+          <p style={{ color: '#aaa', marginBottom: '15px' }}>Stock disponible: {producto.stock}</p>
+          <p style={{ marginBottom: '20px' }}>{producto.descripcion || "Impresión 3D de alta calidad."}</p>
 
-        <p style={{ color: '#666', lineHeight: '1.6', margin: '15px 0' }}>{producto.descripcion}</p>
-        
-        
-        <div style={{ background: '#f9f9f9', padding: '12px', borderRadius: '6px', marginBottom: '15px', fontSize: '0.9rem', color: '#444' }}>
-          <p style={{ margin: '4px 0' }}><strong>Material:</strong> {producto.material || 'PLA de alta resistencia'}</p>
-          
+          {/* Botón de compra / agregar al carrito condicional */}
+          {cantidadAgregada ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <span style={{ color: '#00ffcc', fontWeight: 'bold' }}>¡Producto agregado al carrito!</span>
+              <Link 
+                to="/carrito" 
+                style={{ background: '#00ffcc', color: '#000', padding: '10px 20px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold', textAlign: 'center' }}
+              >
+                Terminar mi compra (Ir al Carrito)
+              </Link>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {/* Controles de cantidad (+ y -) */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <span style={{ fontWeight: 'bold' }}>Cantidad:</span>
+                <button 
+                  onClick={handleRestar}
+                  style={{ background: '#444', color: '#fff', border: 'none', width: '30px', height: '30px', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}
+                >
+                  -
+                </button>
+                <span style={{ fontSize: '18px', fontWeight: 'bold', minWidth: '20px', textAlign: 'center' }}>{cantidad}</span>
+                <button 
+                  onClick={handleSumar}
+                  style={{ background: '#444', color: '#fff', border: 'none', width: '30px', height: '30px', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}
+                >
+                  +
+                </button>
+              </div>
+
+              <button 
+                onClick={handleAgregarAlCarrito}
+                style={{ background: '#00ffcc', color: '#000', border: 'none', padding: '12px 24px', borderRadius: '4px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Comprar / Agregar al Carrito
+              </button>
+            </div>
+          )}
         </div>
-
-        <h3 style={{ color: '#27ae60', fontSize: '1.5rem', marginBottom: '5px' }}>${producto.precio}</h3>
-        <p style={{ color: '#7f8c8d', marginBottom: '20px' }}>Stock disponible: {producto.stock} unidades</p>
-        
-        <button 
-          onClick={() => agregarAlCarrito(producto)}
-          style={{ background: '#3498db', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}>
-          Agregar al Carrito
-        </button>
       </div>
     </div>
   );
-}
+};
 
 export default ItemDetailContainer;

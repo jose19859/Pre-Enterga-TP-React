@@ -1,12 +1,12 @@
 import React from 'react';
-import Header from './Header';
+import Navbar from '../navbar/Navbar'; 
 import Footer from './Footer';
 import { Outlet } from 'react-router-dom';
 
 function Layout() {
   return (
     <div>
-      <Header />
+      <Navbar /> 
       <main style={{ minHeight: '70vh', padding: '20px' }}>
         <Outlet />
       </main>

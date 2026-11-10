@@ -1,42 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import Item from '../item/Item'; 
+import React, { useState } from 'react';
+import { useCart } from '../context/CartContext';
+import Item from '../item/Item';
 
-function ItemListContainer({ Mensaje }) {
-  const [productos, setProductos] = useState([]);
-  const [cargando, setCargando] = useState(true);
+const ItemListContainer = () => {
+  const { productos, cargando, error } = useCart();
+  const [busqueda, setBusqueda] = useState('');
 
-  useEffect(() => {
-    fetch('/data/productos.json')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('No se pudo cargar el archivo JSON');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setProductos(data);
-        setCargando(false);
-      })
-      .catch((error) => {
-        console.error("Error al cargar los productos 3D:", error);
-        setCargando(false); 
-      });
-  }, []);
+  const productosFiltrados = productos.filter((prod) =>
+    (prod.nombre || '').toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   if (cargando) {
-    return <h3 style={{ textAlign: 'center', padding: '40px' }}>Cargando catálogo de impresión 3D...</h3>;
+    return <h3 style={{ textAlign: 'center', color: '#fff', marginTop: '50px' }}>Cargando catálogo...</h3>;
+  }
+  if (error) {
+    return <h3 style={{ textAlign: 'center', color: '#e74c3c', marginTop: '50px' }}>{error}</h3>;
   }
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h2>{Mensaje}</h2>
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '20px' }}>
-        {productos.map((prod) => (
-          <Item key={prod.id} {...prod} />
-        ))}
+    <div style={{ padding: '20px', color: '#fff', maxWidth: '1200px', margin: '0 auto' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Catálogo de 3D Print Lab</h2>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+        <input
+          type="text"
+          placeholder="Buscar producto por nombre..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          style={{
+            width: '100%', maxWidth: '500px', padding: '12px 16px',
+            borderRadius: '6px', border: '1px solid #444',
+            backgroundColor: '#222', color: '#fff', fontSize: '16px', outline: 'none'
+          }}
+        />
       </div>
+
+    {productosFiltrados.length > 0 ? (
+  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
+    {productosFiltrados.map((prod) => (
+      <Item key={prod.id} {...prod} />
+    ))}
+  </div>
+) : (
+  <p style={{ textAlign: 'center', fontSize: '18px', color: '#aaa' }}>
+    No se encontraron productos que coincidan con tu búsqueda.
+  </p>
+)}
     </div>
   );
-}
+};
 
 export default ItemListContainer;
